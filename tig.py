@@ -3,6 +3,7 @@ import os
 import time
 import random
 from shutil import copytree, ignore_patterns
+from distutils.dir_util import copy_tree
 
 AVAILABLE_COMMANDS = [
     'init',
@@ -41,6 +42,14 @@ def get_current_branch():
     _file.close()
     return branch
 
+
+def get_last_backup():
+    branch = get_current_branch()
+    commits = ['.tig/branches/' + branch + '/' + d for d in os.listdir('.tig/branches/' + branch) if os.path.isdir('.tig/branches/' + branch + '/' + d)]
+    print commits
+    return max(commits, key=os.path.getmtime)
+
+
 def get_backup_name():
     """ Generate a backup folder name """
     
@@ -52,6 +61,7 @@ def init():
     if not repo_exists():
         os.makedirs('.tig')
         os.makedirs('.tig/branches/master')
+        os.makedirs('.tig/tmp')
 
         _file = open(".tig/current_branch", "w")
         _file.write("master")
@@ -67,6 +77,7 @@ def status():
     """ Print the repo status """
 
     print "Current branch is: " + get_current_branch()
+    print "Last commit: " + get_last_backup()
 
 
 @check_repo_exists_decorator
@@ -74,7 +85,7 @@ def commit():
     """ crea un backup """
 
     branch = get_current_branch()
-    copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=ignore_patterns('*.pyc', '.*', 'tig.py'))
+    copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=ignore_patterns('.*', 'tig.py'))
     print "Commit ok! Yeah..."
 
 
@@ -95,6 +106,17 @@ def blame():
 
 def rollback():
     ''' restore ultimo backup '''
+
+    # save not versioned files to temp
+    tmp_folder_name = str(time.time())
+    os.makedirs(".tig/tmp/"+tmp_folder_name)
+
+    # empty current folder (not tig.py)
+    # rollback
+    # restore not versione file from temp
+    last_backup = get_last_backup()
+    copy_tree(last_backup, '.')
+
     print "rollback"
 
 def branch(branch_name):
