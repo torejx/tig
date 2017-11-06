@@ -19,6 +19,13 @@ AVAILABLE_COMMANDS = [
     'status'
     ]
 
+IGNORE_FILES = [
+    'tig.py',
+    '.tig',
+    '.git',
+    '.gitignore'
+]
+
 BACKUP_FOLDER_NAMES = ['old', 'oooold', 'old-old', 'very-old', 'old1', 'old2', 'olddddd', 'old11111', 'last', 'very-last']
 
 def check_repo_exists_decorator(f): 
@@ -85,7 +92,7 @@ def commit():
     """ crea un backup """
 
     branch = get_current_branch()
-    shutil.copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=shutil.ignore_patterns('.tig', 'tig.py'))
+    shutil.copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=shutil.ignore_patterns(IGNORE_FILES))
     print "Commit " + branch + '/' + get_backup_name() + " created."
 
 
@@ -121,7 +128,7 @@ def rollback():
     backup_dir = get_last_backup()
     files = os.listdir(backup_dir)
     for _f in files:
-        if _f != '.tig' and _f != 'tig.py':
+        if _f not in IGNORE_FILES:
             print _f
             if os.path.isdir(backup_dir + "/" + _f):
                 shutil.copytree(backup_dir + "/" + _f, '.')
