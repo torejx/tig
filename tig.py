@@ -26,6 +26,11 @@ IGNORE_FILES = [
     '.gitignore'
 ]
 
+IGNORE_PATTERNS = [
+    'tig.py',
+    '.*'
+]
+
 BACKUP_FOLDER_NAMES = ['old', 'oooold', 'old-old', 'very-old', 'old1', 'old2', 'olddddd', 'old11111', 'last', 'very-last']
 
 def check_repo_exists_decorator(f): 
@@ -91,9 +96,11 @@ def status():
 def commit():
     """ crea un backup """
 
-    branch = get_current_branch()
-    commit_dir = branch + '/' + get_backup_name()
-    shutil.copytree('.', '.tig/branches/' + commit_dir, ignore=shutil.ignore_patterns(*IGNORE_FILES))
+    commit_dir = get_current_branch() + '/' + get_backup_name()
+    shutil.copytree('.', '.tig/branches/' + commit_dir, ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
+
+    # update mtime because copytree use copystats
+    os.utime('.tig/branches/' + commit_dir, None)
     print "Commit " + commit_dir + " created."
 
 
@@ -120,7 +127,7 @@ def rollback():
     # empty current folder (not tig.py)
     files = os.listdir('.')
     for _f in files:
-        if _f != '.tig' and _f != 'tig.py':
+        if _f not in IGNORE_FILES:
             if os.path.isdir(_f):
                 shutil.rmtree(_f)
             else:
@@ -130,7 +137,6 @@ def rollback():
     files = os.listdir(backup_dir)
     for _f in files:
         if _f not in IGNORE_FILES:
-            print _f
             if os.path.isdir(backup_dir + "/" + _f):
                 shutil.copytree(backup_dir + "/" + _f, '.')
             else:
@@ -139,14 +145,25 @@ def rollback():
     #last_backup = get_last_backup()
     #copy_tree(last_backup, '.')
 
-    print "rollback from " + backup_dir
+    print "Rollback from " + backup_dir
 
 def branch(branch_name):
     ''' crea nuova cartella? '''
     raise NotImplementedError("To be implemented")
 
 def help():
-    raise NotImplementedError("To be implemented")
+    print "Welcome to TiG help\n"
+    print "List of available commands: \n"
+    print "tig.py init     \t\t init a new repository"
+    print "tig.py status   \t\t check the repository status"
+    print "tig.py commit   \t\t commit all files and directories"
+    print "tig.py merge    \t\t perform a merge (maybe...)"
+    print "tig.py push     \t\t push your commits (maybe...)"
+    print "tig.py branch   \t\t create a new branch"
+    print "tig.py blame    \t\t blame someone!"
+    print "tig.py rollback \t\t revert your modification"
+    print "tig.py help     \t\t display this help page"
+
 
 def main():
     print "Welcome to tig\n"
