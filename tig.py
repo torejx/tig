@@ -92,8 +92,9 @@ def commit():
     """ crea un backup """
 
     branch = get_current_branch()
-    shutil.copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=shutil.ignore_patterns(IGNORE_FILES))
-    print "Commit " + branch + '/' + get_backup_name() + " created."
+    commit_dir = branch + '/' + get_backup_name()
+    shutil.copytree('.', '.tig/branches/' + commit_dir, ignore=shutil.ignore_patterns(*IGNORE_FILES))
+    print "Commit " + commit_dir + " created."
 
 
 @check_repo_exists_decorator
