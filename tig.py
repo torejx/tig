@@ -55,11 +55,19 @@ def get_current_branch():
     _file.close()
     return branch
 
+def set_current_branch(branch_name):
+
+    _file = open(".tig/current_branch", "w")
+    _file.write(branch_name)
+    _file.close()
+
 
 def get_last_backup():
     branch = get_current_branch()
     commits = ['.tig/branches/' + branch + '/' + d for d in os.listdir('.tig/branches/' + branch) if os.path.isdir('.tig/branches/' + branch + '/' + d)]
-    return max(commits, key=os.path.getmtime)
+    if len(commits) > 0:
+        return max(commits, key=os.path.getmtime)
+    return None
 
 
 def get_backup_name():
@@ -75,9 +83,7 @@ def init():
         os.makedirs('.tig/branches/master')
         os.makedirs('.tig/tmp')
 
-        _file = open(".tig/current_branch", "w")
-        _file.write("master")
-        _file.close()
+        set_current_branch('master')
 
         print "A new repository has been created! Ehm... not a real repo."
     else:
@@ -87,9 +93,13 @@ def init():
 @check_repo_exists_decorator
 def status():
     """ Print the repo status """
+    
+    last_backup = get_last_backup()
 
     print "Current branch is: " + get_current_branch()
-    print "Last commit: " + get_last_backup()
+
+    if last_backup:
+        print "Last commit: " + get_last_backup()
 
 
 @check_repo_exists_decorator
@@ -122,7 +132,10 @@ def blame():
 def rollback():
     ''' restore ultimo backup '''
 
-    # save not versioned files to temp
+    backup_dir = get_last_backup()
+    if not backup_dir:
+        print "Nothing to rollback to"
+        return
         
     # empty current folder (not tig.py)
     files = os.listdir('.')
@@ -133,7 +146,6 @@ def rollback():
             else:
                 os.remove(_f)
     # rollback
-    backup_dir = get_last_backup()
     files = os.listdir(backup_dir)
     for _f in files:
         if _f not in IGNORE_FILES:
@@ -149,7 +161,10 @@ def rollback():
 
 def branch(branch_name):
     ''' crea nuova cartella? '''
-    raise NotImplementedError("To be implemented")
+    set_current_branch(branch_name)
+    if not os.path.exists('.tig/branches/'+branch_name):
+        os.makedirs('.tig/branches/'+branch_name)
+    print "Switched to branch " + branch_name
 
 def help():
     print "Welcome to TiG help\n"
@@ -166,9 +181,10 @@ def help():
 
 
 def main():
-    print "Welcome to tig\n"
+    print "Welcome to TiG\n"
     parser = argparse.ArgumentParser()
     parser.add_argument('command', nargs='?')
+    parser.add_argument('param', nargs='?')
     args = parser.parse_args()
 
     if not args.command:
@@ -178,7 +194,13 @@ def main():
             if args.command not in AVAILABLE_COMMANDS:
                 print "Command '" + args.command + "' not found. Available commands are: " + ", ".join(cmd for cmd in AVAILABLE_COMMANDS) + "."
             else:
-                globals()[args.command]()
+                if args.command == 'branch':
+                    if not args.param:
+                        print "Insert branch name"
+                    else:
+                        globals()[args.command](args.param)        
+                else:
+                    globals()[args.command]()
         except Exception as e:
             print e
 
