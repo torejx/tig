@@ -1,8 +1,9 @@
 import argparse
+import glob
 import os
 import time
 import random
-from shutil import copytree, ignore_patterns
+import shutil
 from distutils.dir_util import copy_tree
 
 AVAILABLE_COMMANDS = [
@@ -46,7 +47,6 @@ def get_current_branch():
 def get_last_backup():
     branch = get_current_branch()
     commits = ['.tig/branches/' + branch + '/' + d for d in os.listdir('.tig/branches/' + branch) if os.path.isdir('.tig/branches/' + branch + '/' + d)]
-    print commits
     return max(commits, key=os.path.getmtime)
 
 
@@ -85,18 +85,18 @@ def commit():
     """ crea un backup """
 
     branch = get_current_branch()
-    copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=ignore_patterns('.*', 'tig.py'))
-    print "Commit ok! Yeah..."
+    shutil.copytree('.', '.tig/branches/' + branch + '/' + get_backup_name(), ignore=shutil.ignore_patterns('.tig', 'tig.py'))
+    print "Commit " + branch + '/' + get_backup_name() + " created."
 
 
 @check_repo_exists_decorator
 def pull():
     ''' non fa niente '''
-    print "pull"
+    raise NotImplementedError("To be implemented")
 
 def push():
     ''' crea zip? '''
-    print "push"
+    raise NotImplementedError("To be implemented")
 
 def merge():
     print "You're f*cked, man. You're really f*cked"
@@ -108,26 +108,40 @@ def rollback():
     ''' restore ultimo backup '''
 
     # save not versioned files to temp
-    tmp_folder_name = str(time.time())
-    os.makedirs(".tig/tmp/"+tmp_folder_name)
-
+        
     # empty current folder (not tig.py)
+    files = os.listdir('.')
+    for _f in files:
+        if _f != '.tig' and _f != 'tig.py':
+            if os.path.isdir(_f):
+                shutil.rmtree(_f)
+            else:
+                os.remove(_f)
     # rollback
+    backup_dir = get_last_backup()
+    files = os.listdir(backup_dir)
+    for _f in files:
+        if _f != '.tig' and _f != 'tig.py':
+            print _f
+            if os.path.isdir(backup_dir + "/" + _f):
+                shutil.copytree(backup_dir + "/" + _f, '.')
+            else:
+                shutil.copy(backup_dir + "/" + _f, '.')
     # restore not versione file from temp
-    last_backup = get_last_backup()
-    copy_tree(last_backup, '.')
+    #last_backup = get_last_backup()
+    #copy_tree(last_backup, '.')
 
-    print "rollback"
+    print "rollback from " + backup_dir
 
 def branch(branch_name):
     ''' crea nuova cartella? '''
-    print "branch"
+    raise NotImplementedError("To be implemented")
 
 def help():
-    print "HELP"
+    raise NotImplementedError("To be implemented")
 
 def main():
-    print "Welcome to tig"
+    print "Welcome to tig\n"
     parser = argparse.ArgumentParser()
     parser.add_argument('command', nargs='?')
     args = parser.parse_args()
