@@ -65,7 +65,7 @@ def set_current_branch(branch_name):
 def get_last_backup():
     branch = get_current_branch()
     commits = ['.tig/branches/' + branch + '/' + d for d in os.listdir('.tig/branches/' + branch) if os.path.isdir('.tig/branches/' + branch + '/' + d)]
-    if len(commits) > 0:
+    if not commits:
         return max(commits, key=os.path.getmtime)
     return None
 
