@@ -50,7 +50,7 @@ def repo_exists():
 def get_current_branch():
     """ Get the current branch name """
 
-    _file = open(".tig/current_branch", "r")
+    _file = oplen(".tig/current_branch", "r")
     branch = _file.readline()
     _file.close()
     return branch
@@ -86,8 +86,10 @@ def init():
         set_current_branch('master')
 
         print "A new repository has been created! Ehm... not a real repo."
+        return True
     else:
         print "Again? You already called init here, man!"
+        return False
 
 
 @check_repo_exists_decorator
