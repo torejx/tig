@@ -50,7 +50,7 @@ def repo_exists():
 def get_current_branch():
     """ Get the current branch name """
 
-    _file = oplen(".tig/current_branch", "r")
+    _file = open(".tig/current_branch", "r")
     branch = _file.readline()
     _file.close()
     return branch
