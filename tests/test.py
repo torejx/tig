@@ -2,7 +2,7 @@ import unittest
 import os
 import mock
 import shutil
-from src.tig import *
+from tig.tig import *
 
 class TestTig(unittest.TestCase):
 
@@ -25,11 +25,11 @@ class TestTig(unittest.TestCase):
         shutil.rmtree('.tig')
         self.assertFalse(repo_exists())
 
-    @mock.patch('src.tig.repo_exists', return_value=True)
+    @mock.patch('tig.tig.repo_exists', return_value=True)
     def test_init_ko(self, repo_exists_function):
         self.assertFalse(init())
 
-    @mock.patch('src.tig.repo_exists', return_value=False)
+    @mock.patch('tig.tig.repo_exists', return_value=False)
     def test_init_ok(self, repo_exists_function):
         shutil.rmtree('.tig')
         self.assertTrue(init())
