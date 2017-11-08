@@ -205,6 +205,3 @@ def main():
                     globals()[args.command]()
         except Exception as e:
             print e
-
-if __name__ == "__main__":
-    main()

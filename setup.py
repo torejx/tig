@@ -8,5 +8,9 @@ setup(name='tig',
       author='Salvatore Caputi',
       author_email='salvatore@scaputi.net',
       #url='https://www.python.org/sigs/distutils-sig/',
-      packages=['tests', 'tig']
+      packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+      entry_points = {
+        'console_scripts':
+            ['tig = tig:main'],
+      }
      )
