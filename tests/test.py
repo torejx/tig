@@ -3,17 +3,18 @@ import os
 import mock
 import shutil
 from tig.tig import *
+from tig.utils import *
 
 class TestTig(unittest.TestCase):
 
     def setUp(self):
-        if not os.path.exists('.tig'):
-            os.mkdir('.tig')
+        if not os.path.exists(ROOT):
+            os.mkdir(ROOT)
 
 
     def tearDown(self):
-        if os.path.exists('.tig'):
-            shutil.rmtree('.tig')
+        if os.path.exists(ROOT):
+            shutil.rmtree(ROOT)
 
 
     def test_repo_exists(self):
@@ -22,7 +23,7 @@ class TestTig(unittest.TestCase):
 
     def test_repo_not_exists(self):
     
-        shutil.rmtree('.tig')
+        shutil.rmtree(ROOT)
         self.assertFalse(repo_exists())
 
     @mock.patch('tig.tig.repo_exists', return_value=True)
@@ -31,17 +32,17 @@ class TestTig(unittest.TestCase):
 
     @mock.patch('tig.tig.repo_exists', return_value=False)
     def test_init_ok(self, repo_exists_function):
-        shutil.rmtree('.tig')
+        shutil.rmtree(ROOT)
         self.assertTrue(init())
-        self.assertTrue(os.path.exists('.tig'))
-        self.assertTrue(os.path.exists('.tig/branches'))
-        self.assertTrue(os.path.exists('.tig/branches/master'))
-        self.assertTrue(os.path.exists('.tig/tmp'))
+        self.assertTrue(os.path.exists(ROOT))
+        self.assertTrue(os.path.exists(BRANCHES_FOLDER))
+        self.assertTrue(os.path.exists(os.path.join(BRANCHES_FOLDER, DEFAULT_BRANCH)))
+        self.assertTrue(os.path.exists(TMP_FOLDER))
 
 
     def test_get_current_branch(self):
         self.test_init_ok()
-        self.assertEqual(get_current_branch(), 'master')
+        self.assertEqual(get_current_branch(), DEFAULT_BRANCH)
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestTig)
