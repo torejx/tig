@@ -16,7 +16,8 @@ AVAILABLE_COMMANDS = [
     'blame',
     'rollback',
     'help',
-    'status'
+    'status',
+    'log'
     ]
 
 IGNORE_FILES = [
@@ -171,15 +172,16 @@ def branch(branch_name):
 def help():
     print "Welcome to TiG help\n"
     print "List of available commands: \n"
-    print "tig.py init     \t\t init a new repository"
-    print "tig.py status   \t\t check the repository status"
-    print "tig.py commit   \t\t commit all files and directories"
-    print "tig.py merge    \t\t perform a merge (maybe...)"
-    print "tig.py push     \t\t push your commits (maybe...)"
-    print "tig.py branch   \t\t create a new branch"
-    print "tig.py blame    \t\t blame someone!"
-    print "tig.py rollback \t\t revert your modification"
-    print "tig.py help     \t\t display this help page"
+    print "tig init     \t\t init a new repository"
+    print "tig status   \t\t check the repository status"
+    print "tig commit   \t\t commit all files and directories"
+    print "tig merge    \t\t perform a merge (maybe...)"
+    print "tig push     \t\t push your commits (maybe...)"
+    print "tig branch   \t\t create a new branch"
+    print "tig blame    \t\t blame someone!"
+    print "tig rollback \t\t revert your modification"
+    print "tig log      \t\t show the repo history"
+    print "tig help     \t\t display this help page"
 
 
 def main():
