@@ -21,7 +21,8 @@ AVAILABLE_COMMANDS = [
     'blame',
     'rollback',
     'help',
-    'status'
+    'status',
+    'log'
     ]
 
 IGNORE_FILES = [

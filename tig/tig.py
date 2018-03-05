@@ -59,6 +59,10 @@ def push():
     ''' crea zip? '''
     raise NotImplementedError("To be implemented")
 
+def log():
+    """ Show history """
+    raise NotImplementedError("To be implemented")
+
 def merge():
     """ Merge two commits """
 
