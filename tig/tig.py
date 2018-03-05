@@ -5,86 +5,17 @@ import time
 import random
 import shutil
 from distutils.dir_util import copy_tree
-
-AVAILABLE_COMMANDS = [
-    'init',
-    'commit',
-    'branch',
-    'pull',
-    'push',
-    'merge',
-    'blame',
-    'rollback',
-    'help',
-    'status',
-    'log'
-    ]
-
-IGNORE_FILES = [
-    'tig.py',
-    '.tig',
-    '.git',
-    '.gitignore'
-]
-
-IGNORE_PATTERNS = [
-    'tig.py',
-    '.*'
-]
-
-BACKUP_FOLDER_NAMES = ['old', 'oooold', 'old-old', 'very-old', 'old1', 'old2', 'olddddd', 'old11111', 'last', 'very-last']
-
-def check_repo_exists_decorator(f): 
-    def wrapper(*args, **kwargs): 
-        if repo_exists():
-            return f(*args, **kwargs)
-        print "No repo found here. You should launch init first"
-        return
-    return wrapper 
-
-
-def repo_exists():
-    """ Check if a repo already exists """
-
-    return os.path.exists('.tig')
-
-def get_current_branch():
-    """ Get the current branch name """
-
-    _file = open(".tig/current_branch", "r")
-    branch = _file.readline()
-    _file.close()
-    return branch
-
-def set_current_branch(branch_name):
-
-    _file = open(".tig/current_branch", "w")
-    _file.write(branch_name)
-    _file.close()
-
-
-def get_last_backup():
-    branch = get_current_branch()
-    commits = ['.tig/branches/' + branch + '/' + d for d in os.listdir('.tig/branches/' + branch) if os.path.isdir('.tig/branches/' + branch + '/' + d)]
-    if not commits:
-        return max(commits, key=os.path.getmtime)
-    return None
-
-
-def get_backup_name():
-    """ Generate a backup folder name """
-    
-    return str(time.time()) + "_" + random.choice(BACKUP_FOLDER_NAMES)
+from utils import *
 
 def init():
     """ Init a new repo """
 
     if not repo_exists():
-        os.makedirs('.tig')
-        os.makedirs('.tig/branches/master')
-        os.makedirs('.tig/tmp')
+        os.makedirs(ROOT)
+        os.makedirs(os.path.join(BRANCHES_FOLDER, DEFAULT_BRANCH))
+        os.makedirs(TMP_FOLDER)
 
-        set_current_branch('master')
+        set_current_branch(DEFAULT_BRANCH)
 
         print "A new repository has been created! Ehm... not a real repo."
         return True
@@ -98,23 +29,25 @@ def status():
     """ Print the repo status """
     
     last_backup = get_last_backup()
+    current_branch = get_current_branch()
 
-    print "Current branch is: " + get_current_branch()
+    print "Current branch is: %s" % current_branch
 
     if last_backup:
-        print "Last commit: " + get_last_backup()
+        print "Last commit: %s" % last_backup.replace(BRANCHES_FOLDER + os.sep, '')
 
 
 @check_repo_exists_decorator
 def commit():
-    """ crea un backup """
+    """ Create a new commit """
 
     commit_dir = get_current_branch() + '/' + get_backup_name()
-    shutil.copytree('.', '.tig/branches/' + commit_dir, ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
+    commit_dir = os.path.join(get_current_branch(), get_backup_name())
+    shutil.copytree('.', os.path.join(BRANCHES_FOLDER, commit_dir), ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
 
     # update mtime because copytree use copystats
-    os.utime('.tig/branches/' + commit_dir, None)
-    print "Commit " + commit_dir + " created."
+    os.utime(os.path.join(BRANCHES_FOLDER, commit_dir), None)
+    print "Commit %s created." % commit_dir
 
 
 @check_repo_exists_decorator
@@ -127,13 +60,17 @@ def push():
     raise NotImplementedError("To be implemented")
 
 def merge():
+    """ Merge two commits """
+
     print "You're f*cked, man. You're really f*cked"
 
 def blame():
+    """ Blame someone """
+
     print "So, you don't use a serious csv and you want to blame someone? Really?"
 
 def rollback():
-    ''' restore ultimo backup '''
+    """ Restore last commit """
 
     backup_dir = get_last_backup()
     if not backup_dir:
@@ -151,25 +88,30 @@ def rollback():
     # rollback
     files = os.listdir(backup_dir)
     for _f in files:
+        path = os.path.join(backup_dir, _f)
         if _f not in IGNORE_FILES:
-            if os.path.isdir(backup_dir + "/" + _f):
-                shutil.copytree(backup_dir + "/" + _f, '.')
+            if os.path.isdir(path):
+                shutil.copytree(path, '.')
             else:
-                shutil.copy(backup_dir + "/" + _f, '.')
+                shutil.copy(path, '.')
     # restore not versione file from temp
     #last_backup = get_last_backup()
     #copy_tree(last_backup, '.')
 
-    print "Rollback from " + backup_dir
+    print "Rollback from %s" % backup_dir
 
 def branch(branch_name):
-    ''' crea nuova cartella? '''
+    """ Create a new branch as a folder """
+
     set_current_branch(branch_name)
-    if not os.path.exists('.tig/branches/'+branch_name):
-        os.makedirs('.tig/branches/'+branch_name)
-    print "Switched to branch " + branch_name
+    path = os.path.join(BRANCHES_FOLDER, branch_name)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    print "Switched to branch %s" % branch_name
 
 def help():
+    """ Print commands list """
+
     print "Welcome to TiG help\n"
     print "List of available commands: \n"
     print "tig init     \t\t init a new repository"
@@ -185,7 +127,6 @@ def help():
 
 
 def main():
-    print "Welcome to TiG\n"
     parser = argparse.ArgumentParser()
     parser.add_argument('command', nargs='?')
     parser.add_argument('param', nargs='?')
@@ -196,13 +137,14 @@ def main():
     else:
         try:
             if args.command not in AVAILABLE_COMMANDS:
-                print "Command '" + args.command + "' not found. Available commands are: " + ", ".join(cmd for cmd in AVAILABLE_COMMANDS) + "."
+                print "Command '%s' not found. Available commands are: %s." \
+                % (args.command, ", ".join(cmd for cmd in AVAILABLE_COMMANDS))
             else:
                 if args.command == 'branch':
                     if not args.param:
                         print "Insert branch name"
                     else:
-                        globals()[args.command](args.param)        
+                        globals()[args.command](args.param)
                 else:
                     globals()[args.command]()
         except Exception as e:
